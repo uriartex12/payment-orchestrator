@@ -1,7 +1,9 @@
 package com.sgi.payment_orchestrator.service;
 
+import com.sgi.payment_orchestrator.dto.AccountBalanceResponseDTO;
 import com.sgi.payment_orchestrator.dto.OrchestratorRequestDTO;
 import com.sgi.payment_orchestrator.dto.OrchestratorResponseDTO;
+import com.sgi.payment_orchestrator.dto.TransactionResponseDTO;
 import com.sgi.payment_orchestrator.enums.PaymentStatus;
 import com.sgi.payment_orchestrator.enums.WorkflowStepStatus;
 import com.sgi.payment_orchestrator.exception.WorkflowException;
@@ -11,6 +13,7 @@ import com.sgi.payment_orchestrator.saga.steps.AccountStep;
 import com.sgi.payment_orchestrator.saga.PaymentWorkflow;
 import com.sgi.payment_orchestrator.saga.steps.TransactionStep;
 import com.sgi.payment_orchestrator.saga.Workflow;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -31,13 +35,18 @@ public class OrchestratorService {
     @Qualifier("transaction")
     private WebClient transactionClient;
 
+    @SneakyThrows
     public Mono<OrchestratorResponseDTO> payment(final OrchestratorRequestDTO requestDTO) {
         Workflow orderWorkflow = this.getOrderWorkflow(requestDTO);
          return Flux.fromStream(() -> orderWorkflow.getSteps().stream())
                 .flatMap(WorkflowStep::process)
-                .handle(((aBoolean, synchronousSink) -> {
-                    if (aBoolean)
+                .handle(((result, synchronousSink) -> {
+                    if (result.getLeft()){
+                        if(result.getRight() instanceof TransactionResponseDTO transactionResponse){
+                            requestDTO.setTransactionId(transactionResponse.getId());
+                        }
                         synchronousSink.next(true);
+                    }
                     else
                         synchronousSink.error(new WorkflowException("create order failed!"));
                 }))
@@ -53,7 +62,6 @@ public class OrchestratorService {
                 .then(Mono.just(this.getResponseDTO(requestDTO, PaymentStatus.PAYMENT_CANCELLED)));
     }
 
-
     private Workflow getOrderWorkflow(OrchestratorRequestDTO requestDTO) {
         WorkflowStep accountStep = new AccountStep(this.accountClient, OrchestratorMapper.INSTANCE.toAccountBalance(requestDTO));
         WorkflowStep transactionStep = new TransactionStep(this.transactionClient, OrchestratorMapper.INSTANCE.toTransaction(requestDTO));
@@ -61,14 +69,6 @@ public class OrchestratorService {
     }
 
     private OrchestratorResponseDTO getResponseDTO(OrchestratorRequestDTO requestDTO, PaymentStatus status) {
-        OrchestratorResponseDTO responseDTO = new OrchestratorResponseDTO();
-        responseDTO.setAccountId(requestDTO.getAccountId());
-        responseDTO.setAmount(requestDTO.getAmount());
-        responseDTO.setClientId(requestDTO.getClientId());
-        responseDTO.setCardId(requestDTO.getCardId());
-        responseDTO.setStatus(status);
-        responseDTO.setBalance(requestDTO.getBalance());
-        responseDTO.setType(requestDTO.getType());
-        return responseDTO;
+        return  OrchestratorMapper.INSTANCE.toOrchestratorResponse(requestDTO, status);
     }
 }

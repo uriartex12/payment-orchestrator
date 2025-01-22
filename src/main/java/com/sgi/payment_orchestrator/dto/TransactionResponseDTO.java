@@ -15,4 +15,16 @@ public class TransactionResponseDTO {
     private String clientId;
     private String balance;
     private String createdDate;
+    private String walletId;
+    private String cardId;
+    private String source;
+    private String description;
+    private String bootcoinId;
+    private BigDecimal buyRate;
+    private BigDecimal sellRate;
+    private String currency;
+    private String paymentMethod;
+    private String operation;
+    private UserDTO sender;
+    private UserDTO receiver;
 }

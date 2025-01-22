@@ -8,4 +8,5 @@ import java.math.BigDecimal;
 public class AccountBalanceRequestDTO {
     private String accountId;
     private BigDecimal amount;
+    private String type;
 }

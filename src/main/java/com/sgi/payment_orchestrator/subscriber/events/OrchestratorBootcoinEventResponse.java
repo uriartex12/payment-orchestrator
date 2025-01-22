@@ -12,27 +12,20 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrchestratorEventResponse {
-
+public class OrchestratorBootcoinEventResponse {
     private String status;
-    private String topic;
-    private String walletId;
-    private String cardId;
-    private String accountId;
     private String bootcoinId;
-    private String clientId;
+    private String accountId;
     private String type;
     private BigDecimal amount;
-    private BigDecimal buyRate;
-    private BigDecimal sellRate;
     private String currency;
     private String paymentMethod;
-    private String description;
     private BigDecimal balance;
-    private String operation;
+    private String description;
     private UserDTO sender;
     private UserDTO receiver;
-
-    public static final String TOPIC = "OrchestratorEventResponse";
-
+    private BigDecimal buyRate;
+    private BigDecimal sellRate;
+    private String cardId;
+    private String operation;
 }
