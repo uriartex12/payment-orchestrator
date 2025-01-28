@@ -1,6 +1,5 @@
 package com.sgi.payment_orchestrator.service;
 
-import com.sgi.payment_orchestrator.dto.AccountBalanceResponseDTO;
 import com.sgi.payment_orchestrator.dto.OrchestratorRequestDTO;
 import com.sgi.payment_orchestrator.dto.OrchestratorResponseDTO;
 import com.sgi.payment_orchestrator.dto.TransactionResponseDTO;
@@ -21,7 +20,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
